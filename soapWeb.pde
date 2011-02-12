@@ -10,48 +10,44 @@
 #include <Ethernet.h>
 #include <OneWire.h>
 
-//One wire shit
+#define SIDE "n"
+#define LOCATION "Stairs"
+
+//One wire declarations
 
 OneWire  ds1(14);  // on pin 14
 byte     addr[8];
 char     buf[19];
 
-
-// Enter a MAC address and IP address for your controller below.
+////////////////////////////////////////////////////////////////////////
+// MAC address and IP for device
+////////////////////////////////////////////////////////////////////////
 // The IP address will be dependent on your local network:
-int retries = 10;
+int retries = 4;
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xF0, 0x0D };
 byte ip[] = { 129,21,50,68 };
 byte gateway[] = { 129,21,50,254 };
 byte subnet[] = { 255,255,255,0 };
 
-byte server[] = { 129,21,50,34}; // csh
-
-// Initialize the Ethernet client library
-// with the IP address and port of the server 
-// that you want to connect to (port 80 is default for HTTP):
-Client client(server, 7628);
+////////////////////////////////////////////////////////////////////////
+//  Modify to point to soapd server
+////////////////////////////////////////////////////////////////////////
+byte server[] = { 129,21,50,34};//ip address
+Client client(server, 7628);//port
 
 void setup() {
-  // start the Ethernet connection:
-  Ethernet.begin(mac, ip);
-  // start the serial library:
-  Serial.begin(9600);
-  
-  // give the Ethernet shield a second to initialize:
 
-   //if(!sendRequest("",3)){
-   //   resetETH();
-   //} 
-   
-   Serial.println("READY!");
+  Ethernet.begin(mac, ip);
+  Serial.begin(9600);
+  Serial.println("READY!");
+
 }
 
 void loop()
 {
   
   if(getIButton(addr)){
-      if(!sendRequest(addr,3)){
+      if(!sendRequest(addr,retries)){
         Serial.print("Resetting");
         resetETH();
       }
@@ -65,15 +61,8 @@ void loop()
   }
 
   if (!client.connected()) {
-    //Serial.println();
-    //Serial.println("disconnecting.");
     client.stop();
-
-    // do nothing forevermore:
     
-  }
-  else {
-    //Serial.println("working");
   }
 }
 
@@ -107,8 +96,8 @@ int sendRequest(byte* addr,int retries){
       } 
 
       // Make a HTTP request:
-      client.print("n\r\n");
-      client.print("Stairs\r\n");
+      client.print(SIDE"\r\n");
+      client.print(LOCATION"\r\n");
       
       sprintf(buf, "%02X%02X%02X%02X%02X%02X%02X%02X\r\n",
               addr[7], addr[6], addr[5], addr[4],
